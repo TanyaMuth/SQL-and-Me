@@ -5,9 +5,7 @@ Written by Lisa Thoendel
 Last Updated Summer 2022
 --<<>><<>><<>><<>><<>><<>><<>><<>><<>><<>><<>><<>><<>><<>><<>>--
 
-
 NAME: Tanya Muth
-
 
 Use the PetOwners create script to answer these questions.
 We will use the below area to write our test SQL.
