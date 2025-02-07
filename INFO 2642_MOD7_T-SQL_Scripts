@@ -1,0 +1,98 @@
+/******************
+Module 7: Scripts
+INFO 2642
+Written by Lisa Thoendel
+Last Updated Summer 2024
+Based on Ch 14 of Murach's SQL Server 2022 for Developers
+******************/
+/******************
+Completed by: Tanya Muth
+Date: 1/8/25
+******************/
+--<<>><<>><<>><<>><<>><<>><<>><<>><<>><<>><<>><<>><<>><<>><<>>--
+use Foodmart;
+
+-- 1) Find the total quantity items ordered for each production category.
+
+SELECT c.categoryid,
+      c.categoryname,
+      SUM(O.qty) AS Total_Sold
+FROM PRODUCTION.Categories c JOIN PRODUCTION.Products p ON c.categoryid =
+p.categoryid
+      JOIN SALES.OrderDetails o ON o.productid = p.productid
+GROUP BY c.categoryid, c.categoryname
+ORDER BY SUM(O.QTY) DESC
+;
+
+-- 2) Build on the query from #1 by assigning the quantity value and category names
+to variables.
+--Use an if statement to test if the quantity value is over 5000 and output an
+asterisk before the category's name that has more than 5000 items sold.
+--Example output: * Seafood: 7681
+
+DECLARE @Total_Sold INT;
+DECLARE @Category_Name NVARCHAR(40);
+
+--SELECT @Category_Name = 'Seafood';
+
+SELECT @Category_Name = c.categoryname,
+      @Total_Sold = SUM(o.qty)
+FROM PRODUCTION.Categories c JOIN PRODUCTION.Products p ON c.categoryid =
+p.categoryid
+      JOIN SALES.OrderDetails o ON o.productid = p.productid
+GROUP BY c.categoryname
+;
+  IF @Total_Sold > 5000
+      BEGIN
+          PRINT 'Category Name: * ' + @Category_Name;
+          PRINT 'total_Sold: ' + CONVERT(VARCHAR, @Total_Sold);
+      END
+ELSE
+      BEGIN
+          PRINT 'Category Name: ' + @Category_Name;
+          PRINT 'total_Sold: ' + CONVERT(VARCHAR, @Total_Sold);
+      END
+
+-- 3) Notice that you only received output for the final row processed.
+--Use a cursor to show output for all categories and their total quantities sold.
+
+DECLARE @Total_Sold INT;
+DECLARE @Category_Name VARCHAR;
+
+SELECT @Category_Name = c.categoryname,
+      @Total_Sold = SUM(o.qty)
+FROM PRODUCTION.Categories c JOIN PRODUCTION.Products p ON c.categoryid =
+p.categoryid
+      JOIN SALES.OrderDetails o ON o.productid = p.productid
+GROUP BY c.categoryname;
+
+DECLARE Sales_QTY_By_Category CURSOR
+FOR
+      SELECT c.categoryname,
+          SUM(o.qty)
+      FROM PRODUCTION.Categories c JOIN PRODUCTION.Products p ON c.categoryid =
+      p.categoryid
+          JOIN SALES.OrderDetails o ON o.productid = p.productid
+      GROUP BY c.categoryname;
+
+OPEN Sales_QTY_By_Category;
+
+FETCH NEXT FROM Sales_QTY_By_Category INTO @Total_Sold, @Category_Name;
+WHILE @@FETCH_STATUS <> -1
+      BEGIN
+          IF @Total_Sold > 5000
+              BEGIN
+                    PRINT 'Category Name: * ' + CONVERT(VARCHAR,
+                    @Category_Name);
+                    PRINT 'total_Sold: ' + CONVERT(VARCHAR, @Total_Sold);
+              END
+          ELSE
+              BEGIN
+                    PRINT 'Category Name: ' + CONVERT(VARCHAR, @Category_Name);
+                    PRINT 'total_Sold: ' + CONVERT(VARCHAR, @Total_Sold);
+              END
+              FETCH NEXT FROM Sales_QTY_By_Category INTO @Total_Sold, @Category_Name;
+      END;
+
+CLOSE Sales_QTY_By_Category;
+DEALLOCATE Sales_QTY_By_Category;
